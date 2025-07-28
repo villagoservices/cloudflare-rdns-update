@@ -10,7 +10,6 @@ DEFAULT_INSTALL_DIR="/cloudflare"
 DEFAULT_DDNS_USER="ddnsuser"
 DEFAULT_DOMAIN="midominio.cl"
 DEFAULT_SUBDOMAIN="www"
-REPO_URL="https://github.com/villagoservices/cloudflare-rdns-update.git"
 
 # Pedir directorio de instalación
 read -rp "📁 Ruta de instalación [$DEFAULT_INSTALL_DIR]: " INSTALL_DIR
@@ -34,8 +33,15 @@ if [[ -d "$INSTALL_DIR" ]]; then
   exit 1
 fi
 
-echo "📥 Clonando repositorio en $INSTALL_DIR..."
-git clone "$REPO_URL" "$INSTALL_DIR"
+# Crear carpeta destino
+mkdir -p "$INSTALL_DIR"
+
+# Ruta donde está el instalador
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "📁 Copiando archivos desde $SCRIPT_DIR a $INSTALL_DIR..."
+cp -r "$SCRIPT_DIR/"* "$INSTALL_DIR/"
+cp -r "$SCRIPT_DIR/".[!.]* "$INSTALL_DIR/" 2>/dev/null || true
 
 # Crear usuario si no existe
 if id -u "$DDNS_USER" >/dev/null 2>&1; then
@@ -50,7 +56,7 @@ read -rp "✉️  Ingresa tu correo de Cloudflare (CF_AUTH_EMAIL): " cf_email
 read -rsp "🔑 Ingresa tu API Key de Cloudflare (CF_AUTH_KEY): " cf_key
 echo ""
 
-# Crear archivo .env
+# Crear archivo .env (sobrescribe si existía)
 cat > "$INSTALL_DIR/.env" <<EOF
 CF_AUTH_EMAIL=$cf_email
 CF_AUTH_KEY=$cf_key
